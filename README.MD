@@ -94,7 +94,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 ## Authors
 
-* **Your Name** - *Initial work* - [bieaner](https://github.com/jiangzhangy)
+* **Name** - *Initial work* - [bikeaner](https://github.com/jiangzhangy)
 
 See also the list of [contributors](https://yourproject/repository/contributors) who participated in this project.
 
