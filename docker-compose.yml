@@ -1,0 +1,92 @@
+version: '3.7'
+
+services:
+  nginx:
+    build:
+      context: ./services/nginx
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./www:/var/www/html
+      - ./services/nginx/sites:/etc/nginx/sites-available
+      - ./services/nginx/ssl:/etc/nginx/ssl
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+    networks:
+      - app-network
+
+  mysql:
+    build:
+      context: ./services/mysql
+      dockerfile: Dockerfile
+      args:
+        MYSQL_VERSION: ${MYSQL_VERSION}
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./services/mysql/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints: [node.role == manager]
+    networks:
+      - app-network
+
+  redis:
+    build:
+      context: ./services/redis
+      dockerfile: Dockerfile
+    volumes:
+      - redis-data:/data
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+    networks:
+      - app-network
+
+  php:
+    build:
+      context: ./services/php
+      dockerfile: Dockerfile
+      args:
+        PHP_VERSION: ${PHP_VERSION}
+        INSTALL_OPCACHE: ${INSTALL_OPCACHE}
+    volumes:
+      - ./www:/var/www/html
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+    networks:
+      - app-network
+
+volumes:
+  mysql-data:
+  redis-data:
+
+networks:
+  app-network:
+    driver: bridge
